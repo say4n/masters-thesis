@@ -1,0 +1,34 @@
+\normallinespacing
+
+\chapter{Introduction}
+
+In Markov Decision Processes (MDPs) with a finite set of states $\mathcal{S}$ and a finite set of actions $\mathcal{A}$ wherein an agent is tasked with taking an action $a$ in state $s$.
+Upon executing the action, the agent may transition to another state $s^\prime$ and receives a random reward from the environment, typically bounded in the range $[0, 1]$.
+
+Reinforcement learning is a paradigm of learning for MDPs that incorporates learning from delayed feedback.
+Typically the performance of reinforcement learning algorithm algorithms is evaluated based on the performance of a learned policy \cite{sutton_reinforcement_2018, kearns_finite-sample_1999}.
+However, algorithms like UCRL2 \cite{jaksch_near-optimal_2010} by Jaksch et. al. evaluate the performance of a learning algorithm during the learning process by comparing its performance with that of the optimal policy for a particular setting.
+To that end, the accumulated reward by following the learned policy is compared to the accumulated reward while executing action according to the optimal policy.
+The difference between these two quantities is defined as the regret of the learning algorithm with respect to the optimal policy.
+
+Efficient learning over large time horizons in complex environments requires hierarchical reasoning.
+Temporally extended actions is one such abstraction.
+MDPs in their conventional form do no involve actions that are temporally extended.
+This renders conventional MDPs incapable of exploiting the efficiencies offered by a higher level of abstraction.
+To ameliorate this, Sutton et. al. proposed the options framework \cite{sutton_between_1999} which is an extension to the theory of semi-Markov Decision Processes (SMDPs) introduced by Parr \cite{parr_reinforcement_nodate}, Bradtke and Duff \cite{bradtke_reinforcement_1995} and Mahadevan et. al. \cite{mahadevan_self-improving_1997}.
+SMDPs are a special type of MDP wherein actions take variable amounts of time and can model temporally extended course of actions.
+Temporal abstraction intuitively leads to faster learning as it helps learn promising sequences of actions instead of a single actions.
+It also decreases the computational overhead as the action space can be vastly reduced by introducing options thereby reducing the exploration necessary to evaluate the actions.
+However, introducing options may lead to gains in performance in limited contexts as shown by Jong et. al. in \cite{jong_utility_2008}.
+This necessitated a formal analysis on the performance of options and when it aids reinforcement learning, which was undertaken by Fruit et. al. in \cite{fruit_exploration--exploitation_2017}. 
+The precursor to this work was Brunskill and Li's \cite{brunskill_pac-inspired_2014} derivation of sample complexity bounds for R\textsc{max} like algorithms for SMDPs and Fruit and Lazaric's \cite{fruit_exploration--exploitation_2017} mapping of regret of the SMDP version of UCRL algorithm to the regret of learning in the original MDP with options.
+Fruit et. al. \cite{fruit_exploration--exploitation_2017} derive upper bounds for regret in the SMDP setting.
+
+In this work, we implement the work by Fruit et. al.\cite{fruit_exploration--exploitation_2017} and try various confidence bounds like the empirical Bernstein peeling confidence bound to gauge the accumulated regret.
+
+This thesis is structured into chapters that delve briefly into the theory of reinforcement learning, then the options framework and semi-Markov decision processes.
+This is followed by a chapter dedicated to the learning algorithms followed by our methodology.
+The two final chapters describe our experimental setup, the experimentation performed, our results and the conclusion.
+
+
+\newpage

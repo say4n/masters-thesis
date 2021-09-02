@@ -1,0 +1,227 @@
+\chapter{Learning Algorithms}
+
+In this chapter, the UCRL2 algorithm along with Extended Value Iteration is presented briefly.
+Then, its extension to the options framework is described.
+
+\section{UCRL2}
+
+The UCRL2 algorithm was introduced by Jaksch et. al. \cite{jaksch_near-optimal_2010}.
+It builds on the principle of optimism in the face of uncertainty; which chooses actions assuming that the environment is as nice as possible.
+This works because if the optimism is justified then the agent was acting optimally, and, if the optimism is not justified, then the agent gain a better understanding of the environment as it gains more experience.
+
+From a set of MDPs $\mathcal{M}$ constructed from observed statistics of an environment through interaction, the algorithm chooses an MDP $M$ such that it maximizes the gain.
+It then computes a policy $\pi$ that is optimal to this optimistic MDP $M$.
+
+The UCRL2 algorithm is episodic in nature, the optimal policy is computed at the beginning of each episode through Extended Value Iteration (EVI).
+The length of the episodes are not fixed and depend on the observations collected from the environment.
+UCRL2 computes estimates for the average reward and the transition probability from the observations made before the $k$-th episode.
+Throughout the episode, actions are chosen by the policy computed using EVI on the optimistic MDP.
+An episode terminates whenever an action is chosen as many times as it was previously chosen in a state $s$, in other words, when the experience of the agent has doubled.
+These visitation counts are recorded locally by $v_k(s, a)$ for each pair of state and action in the $k$-th episode.
+At the end of each episode, the global visitation counts $N_k(s,a)$ are updated with the values stores in $v_k(s, a)$ for each pair of state and action.
+
+Formally, the set of MDPs $\mathcal{M}$ is defined as
+$$\mathcal{M} = \{ M(\mathcal{S}, \mathcal{A}, \hat{R}, \hat{p}) : \hat{p}(\cdot \mid s, a) \in c(s, a), \hat{\mu}(s, a) \in c^\prime(s, a)\}$$
+where, $c$ and $c^\prime$ are high probability confidence sets for the average reward $\mu$ and the transition probability ($p$) respectively.
+For a confidence level $\delta \in (0,1)$, the confidence sets $c$ and $c^\prime$ at time step $t$ are defined as follows
+\begin{equation}
+c_{\delta, t} (s,a) = \left\{ q \in \Delta(\mathcal{S}): \| \hat{p}_t (\cdot \mid s, a) - q \| \le \sqrt{ \frac{14S}{N_t(s,a)}\log\left( \frac{2At}{\delta} \right)}\right\}
+\label{eq:ci_p}
+\end{equation}
+and,
+\begin{equation}
+c^\prime_{\delta, t} (s,a) = \left\{ \lambda \in [0,1]: | \hat{\mu}_t (s, a) - \lambda | \le \sqrt{ \frac{7}{2N_t(s,a)}\log\left( \frac{2SAt}{\delta} \right)}\right\}
+\label{eq:ci_r}
+\end{equation}
+where, $S$ is the cardinality of state space $\mathcal{S}$ and $A$ is the cardinality of action space $\mathcal{A}$.
+
+The pseudo-code for the UCRL2 procedure is described in algorithm \ref{alg:ucrl2}.
+\begin{algorithm}[!htbp]
+\caption{UCRL2}\label{alg:ucrl2}
+
+\SetKwInput{KwInit}{Initialize}
+
+\KwIn{State space $\mathcal{S}$, action space $\mathcal{A}$ and confidence parameter $\delta \in (0, 1)$}
+\KwInit{$N_0(s,a) = 0$ and $v_0(s, a) = 0$ for all $(s, a) \in \mathcal{S} \times \mathcal{A}$, Set $t = 0$ and $k = 1$}
+\BlankLine
+\For{episode $k = 1, 2, \dots$}{
+    \BlankLine
+    \tcp{Update global visitation counts using local visitation counts from previous episode.}
+    Set $N_k(s, a) = N_{k-1}(s, a) + v_{k-1}(s, a)$ for all $(s, a)$
+    
+    \BlankLine
+    \tcp{Obtain new estimates and compute new policy for $k$-th episode.}
+    Estimate $\hat{p}(\cdot \mid s, a)$ and $\hat{\mu}(s, a)$ empirically for all $(s, a)$
+    
+    Compute $\pi_k$ using extended value iteration with confidence $\delta$
+    
+    \BlankLine
+    Set $v_k(s, a) = 0$ for all $(s, a)$
+    
+    \BlankLine
+    \tcp{Choose actions with $\pi_k$ till experience of any state-action pair doubles.}
+    \While{$v_k (s, \pi_k(s)) < \max{\{ 1, N_k(s, \pi_k(s) \}} $}{
+        \BlankLine
+        \tcp{Observe, act and receive reward.}
+        Observe state $s_t$
+        
+        Execute action $a_t \sim \pi_k(\cdot \mid s_t)$
+        
+        Receive reward $r_t(s_t, a_t)$
+        
+        \BlankLine
+        \tcp{Update local visitation count for the current episode and increment the time step.}
+        Set $v_k(s_t, a_t) = v_k(s_t, a_t) + 1$
+        
+        Set $t = t + 1$
+        \BlankLine
+    }
+}
+\end{algorithm}
+
+\section{Extended Value Iteration}
+
+UCRL2 necessitates the computation of a near-optimal policy for an optimistic MDP $M_k$ during the $k$-th episode.
+While value iteration is able to compute an optimal policy for a single MDP, the UCRL2 setting requires computing a near-optimal policy in addition to selecting an optimistic MDP $M_k$ that maximizes the average reward.
+Extended Value Iteration (EVI) is used to that end.
+
+Let the state value of state $s$ at $k$-th iteration be denoted by $u_k(s)$ and let $u_0(s) = 0$ for all states, then,
+\begin{equation}
+    u_k(s) = \max_{a \in \mathcal{A}} \left( \mu^\prime(s,a) + \sum_{s^\prime \in \mathcal{S}} {p^\prime(s^\prime \mid s, a) u_{k-1}(s^\prime)} \right)
+\end{equation}
+where, 
+$$\mu^\prime(s,a) \in \max \{ \lambda \in c^\prime_{\delta, k} (s,a) \}$$
+from equation \ref{eq:ci_r} and 
+$$p^\prime(\cdot \mid s, a) \in \arg\max \{ \sum_{s^\prime \in \mathcal{S}} {q(s^\prime) u_k(s^\prime) : q \in c_{\delta, k} (s,a)} \}$$ 
+from equation  \ref{eq:ci_p}.
+The pseudo-code for the extended value iteration procedure is described in algorithm \ref{alg:evi}.
+
+\begin{algorithm}
+\caption{Extended Value Iteration}\label{alg:evi}
+
+\SetKwInput{KwInit}{Initialize}
+\SetKwInput{KwOut}{Output}
+
+\KwIn{Set of MDPs $\mathcal{M}$, confidence parameter $\delta \in (0, 1)$}
+\KwInit{$u_0 \equiv 0 $, $u_{-1} \equiv -\infty$ and $k = 0$}
+
+\BlankLine
+\While{$\max_s {u_k (s) - u_{k-1} (s)} - \min_s {u_k (s) - u_{k-1} (s)} > \delta$}{
+    \BlankLine
+    For all state and action pairs $(s, a)$
+    \BlankLine
+    Compute $\mu^\prime(s,a) \in \max \{ \lambda \in c^\prime_{\delta, k} (s,a) \}$
+
+    Compute $p^\prime(\cdot \mid s, a) \in \arg\max \{ \sum_{s^\prime \in \mathcal{S}} {q(s^\prime) u_k(s^\prime) : q \in c_{\delta, k} (s,a)} \}$
+    \BlankLine
+    For all states $s \in \mathcal{S}$, update
+    \BlankLine
+    $u_k(s) = \max_{a \in \mathcal{A}} \left( \mu^\prime(s,a) + \sum_{s^\prime \in \mathcal{S}} {p^\prime(s^\prime \mid s, a) u_{k-1}(s^\prime)} \right)$
+    
+    $\pi_k(s) = \arg\max_{a \in \mathcal{A}} \left( \mu^\prime(s,a) + \sum_{s^\prime \in \mathcal{S}} {p^\prime(s^\prime \mid s, a) u_{k-1}(s^\prime)} \right)$
+    \BlankLine
+    
+    Increment $k$ to $k+1$.
+    \BlankLine
+}
+\BlankLine
+\KwOut{$\pi_{k+1}$}
+\end{algorithm}
+
+\section{Extending to MDP with Options}
+
+Fruit et. al. \cite{fruit_exploration--exploitation_2017, fruit_regret_2017} combine the SMDP view on options along with the intrinsic MDP structure underlying their execution to achieve temporal abstraction without relying on typically unknown parameters such as the transition probabilities and rewards involved.
+Each option is mapped to its associated irreducible Markov chain and optimistic policies are computed using only the stationary distribution of these irreducible Markov chains and the state transition dynamics induced by the SMDP. 
+This approach works without explicit estimates of cumulative rewards, holding times (section \ref{sec:holding_time}) and their confidence intervals.
+
+\begin{assumption}
+\label{asm:option}
+All options in the SMDP terminate in finite time, in all terminal states of the option, there is at least one option that can initiate and the resulting SMDP is communicating.
+\end{assumption}
+Lemma 3 of \cite{fruit_exploration--exploitation_2017} shows that under these assumptions, the family of SMDPs induced by extending MDPs with options is such that for each of the options, the the distributions of the cumulative reward and the duration of options are sub-exponential.
+
+For a SMDP $\langle \mathcal{S}, \mathcal{O}, \mathcal{P}, \mathcal{R} \rangle$, the optimal gain is formally defined as 
+
+\begin{equation}
+    \rho^* \overset{\mathrm{def}}{=} \max_\pi \rho^\pi = \max_\pi \lim_{t \to \infty} \mathbb{E}^\pi \left[ \frac{\sum{R_i}}{t} \right]
+\end{equation}
+
+where $R_i$ is the reward accumulated by an option executed at time step $i$. Alternately, the optimal gain may also be expressed as
+
+\begin{equation}
+    \label{eq:optimal_bias}
+    \rho^* = \max_{o \in \mathcal{O}_s} \left\{ \frac{\bar{R}(s, o)}{\bar{\tau}(s, o)} + \frac{1}{\bar{\tau}(s, o)} \sum_{s^\prime \in \mathcal{S}} p_o(s^\prime \mid s, o) u^*(s^\prime) - u^*(s) \right\}
+\end{equation}
+
+by performing a data transformation as defined in lemma 2 of \cite{federgruen_denumerable_1983}. $u^*$ is the optimal bias and $\mathcal{O}_s$ is the set of options that can be initiated from state $s$ in the above equation.
+
+The performance of a learning algorithm is evaluated through a measure of regret as described in definition \ref{def:regret}.
+
+\begin{definition}
+\label{def:regret}
+For a SMDP $M$, starting from any state $s \in \mathcal{S}$, and proceeding for $k \ge 1$ decision steps, let $\{\tau_i\}_{i=1}^k$ be the random holding times observed by acting according to policy learned by the learning algorithm $\mathcal{A}$, then the total regret is defined as
+\begin{equation}
+    \Delta(M, \mathcal{A}, s, k) = \left( \sum_{i=1}^k \tau_i \right) \rho^*(M) - \sum_{i=1}^k r_i
+\end{equation}
+where, $r_i$ is the reward obtained at the $i$-th decision step and $\rho^*$ is the average asymptotic reward.
+\end{definition}
+
+Definition \ref{def:regret} reduces to the standard definition of regret in a MDP when $\tau_i = 1$, that is when all options are primitive actions.
+The regret measures the difference in the cumulative reward that can be achieved by the following the optimal policy and the cumulative reward that is actually obtained by the policy learned by the learning algorithm $\mathcal{A}$.
+As the total duration of an option after $i$ decision steps varies on the learned policy, even though the average asymptotic reward is characterised by $\rho^*$, the two quantities are multiplied to obtain the true performance of the optimal policy $\pi^*$ after $i$ decision steps.
+
+\subsection{Representing Options as absorbing Markov chains} \label{sec:trueP0}
+
+Since the options terminate in a finite time number of time steps (from assumption \ref{asm:option}), options can be equivalently represented as Markov reward processes whose state space is defined as the set of all states that a reachable from the option and whose terminal states are the absorbing states of the Markov chain.
+Formally, for an option $o$, the inner set of states $\mathcal{S}_o$ is defined as the set of states $s$ which are reachable from the initiation state $s_o$ by executing the option policy $\pi_o$ with $\beta(s) < 1$ along with the initiation state $s_o$, while the set of absorbing states is defined as $\mathcal{S}_o^{abs}\{s : \beta(s) > 0\}$.
+The absorbing Markov chain associated with an option $o$ is defined by a transition probability matrix $P_o$ of shape $(|\mathcal{S}_o| + |\mathcal{S}_o^{abs}|) \times (|\mathcal{S}_o| + |\mathcal{S}_o^{abs}|)$ described below
+
+\begin{equation}
+    P_o = \begin{bmatrix}
+       Q_o & V_o \\
+       0 & I
+    \end{bmatrix}
+\end{equation}
+
+where, $Q_o(s, s^\prime)$ is the transition matrix between inner states of dimension $|\mathcal{S}_o| \times |\mathcal{S}_o|$
+
+\begin{equation}
+    Q_o(s, s^\prime) = (1 - \beta_o(s^\prime)) p(s^\prime \mid s, \pi_o(s)) \forall s, s^\prime \in \mathcal{S}_o
+\end{equation}
+
+$V_o(s, s^\prime)$ is the transition matrix from inner states to absorbing states of dimension $|\mathcal{S}_o| \times |\mathcal{S}_o^{abs}|$
+
+\begin{equation}
+    V_o(s, s^\prime) = \beta_o(s^\prime) p(s^\prime \mid s, \pi_o(s)) \forall s \in \mathcal{S}_o, s^\prime \in \mathcal{S}_o^{abs}
+\end{equation}
+
+and $I$ is an identity matrix of dimension $|\mathcal{S}_o^{abs}| \times |\mathcal{S}_o^{abs}|$.
+The rest of the elements in the transition probability matrix are zeros.
+
+As the expected cumulative reward $\bar{R}(s, o)$ and the duration of options $\bar{\tau}(s, o)$ are directly related to $Q_o$ and $V_o$ of the associated transition probability matrix $P_o$ for an option, an estimate of this transition probability matrix can be exploited to derive corresponding estimates for the expected cumulative reward and the duration of options.
+Similarly confidence intervals on these could also be propagated from the confidence intervals of the corresponding values of the transition probability matrix.
+However, this does not work very well as if the the value 0 belongs to the confidence interval of $P_0$, then the optimistic estimates of the expected cumulative reward $\bar{R}(s, o)$ and the duration of options $\bar{\tau}(s, o)$ are not bounded and ill defined as $\bar{\tau}(s, o)$ appears in the denominator of equation \ref{eq:optimal_bias}.
+
+
+\subsection{Representing Options as irreducible Markov chains}
+
+Starting from $P_o$, an irreducible Markov chain can be constructed whose stationary distribution relates to the ratio of the cumulative reward and the holding times as well as the inverse of the holding times.
+All the terminal states are merged together and are redirected to the initiation state of the option.
+
+The optimistic optimality equation is defined by Fruit et. al. \cite{fruit_regret_2017} in equation 5 as
+
+\begin{equation}
+    \label{eqn:fruit5}
+    \tilde{\rho}^* = \max_{o \in \mathcal{S}} \left\{ \max_{\tilde{\mu}_o, \tilde{r}_o} \left\{ \sum_{s^\prime \in \mathcal{S}_o} \tilde{r}_o(s^\prime) \tilde{\mu}_o(s^\prime) + \tilde{\mu}_o(s) \left( \max_{\tilde{b}_o}\left\{ \tilde{b}_o^\top \tilde{u}^* \right\} - \tilde{u}^*(s) \right)  \right\} \right\}
+\end{equation}
+
+where, $ \tilde{r}_o(s^\prime) =  \tilde{r}(s^\prime, \pi_o(s^\prime))$ is the optimistic reward, $\tilde{b}_o = (\tilde{p}(s^\prime \mid s, o))_{s^\prime \in \mathcal{S}_o}$ is the optimistic transition probability vector and $\mu_o$ is the unique stationary distribution of the irreducible Markov chain.
+
+To obtain an approximation of equation \ref{eqn:fruit5}, starting from an estimate $u_0(s) = 0$ Fruit et. al. define an iterative update rule described as follows
+
+\begin{equation}
+    \label{eqn:fruit7}
+    u_{j+1}(s) = \max_{o \in \mathcal{S}} \left\{ \max_{\tilde{\mu}_o, \tilde{r}_o} \left\{ \sum_{s^\prime \in \mathcal{S}_o} \tilde{r}_o(s^\prime) \tilde{\mu}_o(s^\prime) + \tilde{\mu}_o(s) \left( \max_{\tilde{b}_o}\left\{ \tilde{b}_o^\top \tilde{u}_j(s) \right\} - \tilde{u}^*(s) \right) \right\} \right\} + \tilde{u}_j(s)
+\end{equation}
+
+The implementation of this update rule is further described in the following chapter.

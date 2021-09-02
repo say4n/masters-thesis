@@ -1,0 +1,76 @@
+\normallinespacing
+
+\chapter{The Options Framework}
+
+First introduced by Sutton et. al. \cite{sutton_between_1999}, options are a generalization to represent temporally extended actions.
+An option consists of three components:
+\begin{inparaenum}[(a)]
+    \item an option policy $\pi_o : \mathcal{S} \mapsto \mathcal{A}$
+    \item an initiation set $\mathcal{I}_o \subset \mathcal{S}$ and,
+    \item a termination condition $\beta_o : \mathcal{S} \mapsto [0, 1]$
+\end{inparaenum}.
+In this chapter, the options framework is introduced followed my semi Markov options and policies. Finally, semi Markov Decision Processes are introduced which incorporate semi Markov options and policies into MDPs.
+
+\section{Options}
+
+An option $o = \langle \mathcal{I}_o, \pi_o, \beta_o \rangle$ is available in a state $s$ if and only if $s \in \mathcal{I}_o$.
+If an option is executed, actions are chosen according to the option's policy $\pi_o$ till the option terminates.
+An option terminates stochastically based on $\beta$, its termination condition.
+In other words, starting from a state $s_1$, an option executes an actions $a_1 \sim \pi_o(\cdot \mid s_1)$ and transitions to a state $s_2$.
+Following this, the option may terminate in state state $s_2$ following $\beta_o(s_2)$, or, it may continue on to selecting another action $a_2$ based on the option policy $\pi_o$.
+This continues till the option terminates, post which another option is executed based on the option policy of the learner.
+
+The initiation condition along with the termination condition restrict the range of applicability of an option.
+This yields an expressive setting wherein abstract tasks maybe modelled based on the current state of as system to satisfy an objective.
+
+For example, in a robot locomotion problem, a robot may only plug itself to a wall adapter when in it is in physical proximity to its docking station.
+Another example would be that a robot arm can only release an object if it has already grabbed it.
+
+\subsection{Holding Time}\label{sec:holding_time}
+
+The holding time for an option $o$ is described as the time that an agent spends executing an option. It is a random number dependant on the termination condition of the option $o$.
+
+For example, an option $o$ may start in a state $s_0$ and then transition to $s_1$ by executing an action following its option policy $\pi_o$. 
+However, the option does not terminate at this state and continues to another state $s_2$ again by executing an action following its option policy $\pi_o$.
+It then terminates in this state $s_2$ following its termination condition $\beta_o(s_2)$.
+This option will have a holding time that is 2 time steps.
+
+\section{Semi Markov Options}
+
+Another class of options can be defined that incorporate features like termination after a fixed duration.
+Such classes of options require information about the complete trajectory of the learner in addition to the information of the current state, that is, for an option being executed at time $t$, it requires access to $s_0, a_0, r_0, \dots, s_t$.
+This is also know as the history, $h_t$ and these classes of option are known as semi Markov options.
+The set of all histories is denoted by the set $\Omega$.
+
+The termination condition as well as the option policy are a function of $\Omega$ for semi Markov options.
+Formally, the termination condition $\beta_o : \Omega \mapsto [0, 1]$ and the option policy $\pi_o : \Omega \mapsto \mathcal{A}$.
+Semi Markov options are a more general framework as compared to Markov options.
+
+\section{Semi Markov Policy}
+
+A set of semi Markov options implicitly induces a set of available options $\mathcal{O}_s$ for all states $s \in \mathcal{S}$.
+This is analogous to the set of available actions in the MDP setting.
+Thus, policies can be defined over options instead of over atomic actions. 
+Formally, $\mu : \mathcal{S} \times \mathcal{O} \mapsto [0,1]$ is an option policy wherein a learner at time $t$ in state $s_t$ selects an option such that $o_t \sim \mu(\cdot \mid s_t)$.
+The option is then executed and actions are taken following the options policy $\pi_o$ till the option terminates.
+At this point, an option is again chosen to be executed following the option policy.
+
+Although semi Markov policies may appear similar to non stationary policies as they are dependant on the history, they are more specialized than non stationary policies.
+Non, stationary policies depend on the entire history whereas semi Markov policies are dependant on the history only up to a certain number of time steps in the past.
+
+
+\section{Semi Markov Decision Processes}
+
+
+Semi Markov Decision Processes (SMDPs) build up on top of MDPs with semi Markov options and policies
+SMDPs are special kinds of MDPs that are suitable for modelling continuous time discrete event system.
+
+The key constituents of a SMDP are
+\begin{inparaenum}[(a)]
+    \item a set of states
+    \item a set of options
+    \item a transition probability kernel condition on the options
+    \item a well defined set of rewards for ever state option pair.
+\end{inparaenum}
+
+Formally, a SMDP is defined as the tuple $\langle \mathcal{S}, \mathcal{O}, \mathcal{P}, \mathcal{R} \rangle$ wherein $\mathcal{S}$ is the set of states, $\mathcal{O} \doteq \bigcup_{s \in \mathcal{S}} \mathcal{O}_s$ is the set of available options at each state, $\mathcal{P}$ is the transition probability kernel that is dependant on the option being executed and $\mathcal{R}$ is the reward kernel.

@@ -1,0 +1,154 @@
+\chapter{Methodology}
+
+In this chapter, the methodology for implementation of the learning algorithms and its various constituents are described.
+In addition to it, confidence bounds are delved into briefly.
+
+\section{Smooth estimate of Transition Probability}
+
+As the process of interaction of the agent with the environment is inherently noisy, a smoothing of the transition probability estimates is applied to aid learning.
+The smooth probability estimate is defined as
+
+\begin{equation}
+    P_o(s, s^\prime) = \frac{P_o(s, s^\prime) + \alpha}{\sum_{x \in \mathcal{S}} \left(P_o(s, x) + \alpha \right)}
+\end{equation}
+
+where, $\alpha$ is the smoothing factor. This is implemented as
+
+\begin{minted}[fontsize=\footnotesize, breaklines]{python3}
+for s in range(self.n_states):
+    # Smooth estimate.
+    p_hat[s] = (p_hat[s] + alpha)/(np.sum(p_hat[s]) + alpha * self.n_states)
+\end{minted}
+
+
+
+\section{Stationary Distribution of Markov Chain}
+
+The stationary distribution of Markov chain describes the distribution of the states after a sufficiently long interval of time such that the distribution is not time varying.
+If $\mu$ is a column vector representing the probabilities of the states that the Markov chain can visit, then $\mu$ is the stationary distribution of the Markov chain if it satisfies 
+
+\begin{equation}
+    \label{eqn:mu_estimate}
+    \mu^\top = \mu^\top P
+\end{equation}
+
+
+where $P$ is the transition probability matrix of the Markov chain. 
+In other words, $\mu$ is the fixed point of the above equation.
+Transition probabilities defining ergodic Markov chains are guaranteed to have a stationary distribution of states.
+
+From equation \ref{eqn:mu_estimate}, it can be seen that $\mu$ is the left eigenvector of $P$ with eigenvalue 1.
+Hence, $\mu$ can be computed by eigendecomposition of the transition probability matrix $P$, then the eigenvector whose eigenvalue is 1 can be suitably normalized to obtain the stationary distribution.
+
+It is implemented as follows
+
+\begin{minted}[fontsize=\footnotesize, breaklines]{python3}
+def estimate_stationary_distribution(self, transition_probability):
+    eiv, r_evec = np.linalg.eig(transition_probability)
+    l_evec = np.linalg.pinv(r_evec)
+
+    # Find index of eigenvector with eigenvalue of unity.
+    pick_index = np.where(np.abs(eiv - 1) <= self.eps)
+    pick_index = pick_index[0]
+
+    t_estimate = np.zeros(transition_probability.shape[0])
+
+    for idx in pick_index:
+        t_estimate += np.abs(l_evec[idx])
+
+    # Normalize probabilities.
+    estimate = t_estimate / np.sum(t_estimate)
+
+    return estimate
+\end{minted}
+
+
+\section{Transition Probability}
+
+The true transition probability induced by an option $o$, $P_o$ as described in section \ref{sec:trueP0} is computed as follows
+
+\begin{minted}[fontsize=\footnotesize, breaklines]{python3}
+def trueP0(self, mdp):
+    # terminal states
+    absorbing = [(s, p) for (s, p) in self.termination_condition if p > 0.0]
+    # inner: all states that are not terminal
+    inner = [(s, p) for (s, p) in self.termination_condition if p < 1.0]
+    # internal: internal states with initial state removed
+    internal =  [(s, p) for (s, p) in inner if s not in self.initiation_states]
+
+    # compute true matrix P0
+    p0 = np.zeros((len(inner) + len(absorbing), len(inner) + len(absorbing)))
+    q0 = np.zeros((len(inner), len(inner)))
+    v0 = np.zeros((len(inner), len(absorbing)))
+
+    for i, (s, _) in enumerate(inner):
+        for j, (s_prime, p_s_prime) in enumerate(inner):
+            q0[i][j] = (1 - p_s_prime) * mdp.transition_probabilities[self.o_index][s][s_prime]
+
+    for i, (s, _) in enumerate(inner):
+        for k, (s_prime, p_s_prime) in enumerate(absorbing):
+            v0[i][j] = p_s_prime * mdp.transition_probabilities[self.o_index][s][s_prime]
+
+    p0[:len(inner), :len(inner)] = q0
+    p0[:len(inner), len(inner):] = v0
+    p0[len(inner):, len(inner):] = np.eye(len(absorbing), len(absorbing))
+
+    states = []
+    states.extend(map(lambda el: int(el[0]), inner))
+    states.extend(map(lambda el: int(el[0]), absorbing))
+
+    return p0, states
+\end{minted}
+
+\section{Computing Optimal Policy}
+
+The UCRL algorithm along with extended value iteration followed by computing the optimal policy is implemented as follows
+
+\begin{minted}[fontsize=\footnotesize, breaklines]{python3}
+def computepolicy(self, MDP: SemiMDP, r_upper, p_lower, p_hat, p_upper, t):
+    v_old = np.zeros(MDP.n_states)
+    v_diff = np.arange(MDP.n_states)
+    pi = np.zeros(MDP.n_states)
+    iter = 0
+
+    while iter < 1000 and max(v_diff) - min(v_diff) > 1/np.sqrt(t):
+        iter += 1
+
+        q = self.normalizeprobs(p_lower, p_hat, p_upper, v_old)
+        v = np.zeros(MDP.n_states)
+
+        for s in range(MDP.n_states):
+            v_max_over_options = 0
+            maximizing_option = None
+
+            # Max over options.
+            for o in MDP.get_options(s):
+                v_tmp = 0
+                mu_hat = MDP.options[o].estimate_stationary_distribution(q[o])
+
+                for s_prime in range(MDP.n_states):
+                    v_tmp += r_upper[s_prime] * mu_hat[s_prime]
+
+                v_tmp += mu_hat[s] * (np.dot(q[o][s].T, v_old) - v_old[s]) + v_old[s]
+
+                if v_tmp >= v_max_over_options:
+                    v_max_over_options = v_tmp
+                    maximizing_option = o
+
+            v[s] = v_max_over_options
+            pi[s] = maximizing_option
+
+        v_diff = v - v_old
+        v_old = v
+
+    return pi
+\end{minted}
+
+The experimentation performed is described in the following chapter. 
+
+\section{Confidence Bounds}
+
+The confidence bounds for $\mu_o$ may be calculated either implicitly or explicitly.
+Fruit et. al. \cite{fruit_regret_2017} use Hoeffding and empirical Bernstein type confidence intervals for the SMDP transition probabilities, the Markov chain associated with each option and the rewards.
+In this work, we have used empirical Bernstein type confidence intervals to obtain upper bounds on the estimates.
+
