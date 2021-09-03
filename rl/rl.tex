@@ -4,7 +4,7 @@
 
 Reinforcement Learning (RL) is a sub-field of machine learning wherein an agent learns to take optimal decision in an unknown environment by trial and error.
 RL differs from the other branches of machine learning -- namely supervised learning and unsupervised learning.
-Supervised learning, involves learning from labelled data whereas unsupervised learning, involves finding the underlying structure of unlabelled data.
+Supervised learning involves learning from labeled data whereas unsupervised learning involves finding the underlying structure of unlabeled data.
 RL involves an agent actively exploring an interactive environment sequentially and
 performing actions to maximize a "reward" metric over a number of steps.
 
@@ -38,7 +38,7 @@ Taking an action may cause the agent to transition from one state to another.
 
 \subsection{Reward}
 
-It is a scalar feedback received from the environment as a consequence of the agents action.
+It is a scalar feedback received from the environment as a consequence of the agent's action.
 A characteristic of reinforcement learning is the delayed rewards.
 It means that the consequence of an action is not immediate, its effect is observed in the future.
 
@@ -49,7 +49,7 @@ $\mathcal{P}(s^\prime \mid s, a)$ denotes the probability of transitioning from 
 
 \section{Action Policy}
 
-Policy $\pi$ characterises the behaviour of the learning agent in a state $s$. 
+Policy $\pi$ characterizes the behavior of the learning agent in a state $s$. 
 It qualifies the action(s) that the agent will undertake in a particular state $s$.
 
 A policy can be \textbf{stochastic}, it induces a probability distribution over the set of actions $\mathcal{A}$ for a given state s.
@@ -73,7 +73,7 @@ where, $\gamma$ is the discount rate, $R_t$ is the reward attained at time step 
 $T_{max}$ can be finite, which lead to the finite horizon setting. 
 In the finite horizon setting, if the rewards are bounded at every time step, then the undiscounted sum of rewards may also be used as an objective.
 $T_{max}$ may also be infinite, leading to the infinite horizon setting.
-In the infinite horizon setting, reward discounting is used to make sure that the expected sum of discounted reward is bounded.
+In the infinite-horizon setting, reward discounting is used to make sure that the expected sum of discounted reward is bounded.
 
 The objective may also be defined as an average reward.
 Starting from state $s$ following the policy $\pi$, formally the average reward objective to maximize is defined as
@@ -83,7 +83,7 @@ We will be focusing in the average reward setting henceforth.
 
 \section{Gain}
 
-The gain ($\rho$) or the expected value function of an MDP starting at state $s$ in the infinite horizon setting with average rewards is formally defined as
+The gain ($\rho$) or the expected value function of an MDP starting at state $s$ in the infinite-horizon setting with average rewards is formally defined as
 $$\rho(s) = \max_\pi \mathbb{E}\left[\lim_{T \to \infty} \frac{1}{T} \sum_{t=1}^{T} R_t \mid S_0 = s\right]$$
 
 \section{Value Function}
@@ -182,7 +182,7 @@ One such algorithm is the value iteration algorithm. The value iteration algorit
     
 \end{enumerate}
 
-Value iteration converges to an optimal policy in finite number of iterations if there exists a state $s$ that is reachable from all other states under all stationary policies.
+Value iteration converges to an optimal policy in a finite number of iterations if there exists a state $s$ that is reachable from all other states under all stationary policies.
 Value iteration cannot discriminate between gain optimal and bias optimal policies.
 
 % Links - 

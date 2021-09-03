@@ -11,7 +11,7 @@ Experimentation was performed on a $d \times d$ grid world domain. The environme
 
 The grid world in figure \ref{fig:grid_domain} illustrates a navigation problem with $d^2$ states.
 At each of the states except the goal state in the grid world, 4 deterministic atomic actions are available, they are \texttt{UP}, \texttt{DOWN}, \texttt{LEFT} and \texttt{RIGHT}.
-If the agent hits the walls in the boundary of the grid world while executing an action, it stays in the current state with probability of 1.
+If the agent hits the walls in the boundary of the grid world while executing an action, it stays in the current state with a probability of 1.
 
 \begin{figure}[!htbp]
     \centering
@@ -54,15 +54,15 @@ The holding time for this special teleport option is a single time step.
 The policy for each of the options $\pi_o$ at each of the states is stationary and is defined by the type of the option.
 For example, the \texttt{UP} option only executes the \texttt{UP} action.
 
-In our implementation, each of the states are number from 0 through $d^2 - 1$ starting from the top left corner and ending at the bottom right corner of the grid.
+In our implementation, each of the states are numbered from 0 through $d^2 - 1$ starting from the top left corner and ending at the bottom right corner of the grid.
 
 
 \section{Experiments and Results}
 
 100 trials of learning in the grid world domain was executed for a time horizon of 200000 time steps.
-During each trial the environment was randomly re-initialized such that the collected statistics were reset and both the agent as well as the goal state were moved to different locations on the grid.
+During each trial the environment was randomly re-initialized such that the collected statistics were reset and both the agent and the goal state were moved to different locations on the grid.
 
-The associated plots for accumulated regret and accumulated reward are shown in figures \ref{fig:regret} and  \ref{fig:reward}.
+The associated plots for accumulated regret and accumulated reward using empirical Bernstein type confidence intervals are shown in figures \ref{fig:regret} and  \ref{fig:reward}.
 The gray error bands on the plot correspond to the 95\% confidence interval for the respective quantities being measured.
 
 \begin{figure}[!htbp]

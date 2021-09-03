@@ -24,7 +24,7 @@ for s in range(self.n_states):
 
 \section{Stationary Distribution of Markov Chain}
 
-The stationary distribution of Markov chain describes the distribution of the states after a sufficiently long interval of time such that the distribution is not time varying.
+The stationary distribution of the Markov chain describes the distribution of the states after a sufficiently long interval of time such that the distribution is not time varying.
 If $\mu$ is a column vector representing the probabilities of the states that the Markov chain can visit, then $\mu$ is the stationary distribution of the Markov chain if it satisfies 
 
 \begin{equation}
@@ -74,7 +74,7 @@ def trueP0(self, mdp):
     # inner: all states that are not terminal
     inner = [(s, p) for (s, p) in self.termination_condition if p < 1.0]
     # internal: internal states with initial state removed
-    internal =  [(s, p) for (s, p) in inner if s not in self.initiation_states]
+    internal = [(s, p) for (s, p) in inner if s not in self.initiation_states]
 
     # compute true matrix P0
     p0 = np.zeros((len(inner) + len(absorbing), len(inner) + len(absorbing)))
@@ -144,11 +144,100 @@ def computepolicy(self, MDP: SemiMDP, r_upper, p_lower, p_hat, p_upper, t):
     return pi
 \end{minted}
 
-The experimentation performed is described in the following chapter. 
-
 \section{Confidence Bounds}
 
 The confidence bounds for $\mu_o$ may be calculated either implicitly or explicitly.
 Fruit et. al. \cite{fruit_regret_2017} use Hoeffding and empirical Bernstein type confidence intervals for the SMDP transition probabilities, the Markov chain associated with each option and the rewards.
 In this work, we have used empirical Bernstein type confidence intervals to obtain upper bounds on the estimates.
 
+
+\section{Putting it all together}
+
+Experimentation is carried out with the following driver script. 
+At the start of each experiment, a new environment is instantiated and the various statistics are reset.
+A new policy is evaluated only once experience has doubled for at least one of the state-option pairs.
+
+\begin{minted}[fontsize=\footnotesize, breaklines]{python3}
+import numpy as np
+from copy import deepcopy as dc
+from tqdm.auto import trange, tqdm
+
+from GridWorldOptions import GridWorldOptions
+from ExtendedValueIteration import EVI
+from util import plot_option_visitation_counts, plot_policy, plot_accumulated_reward, plot_accumulated_regret
+
+MAX_ITERS = 200_000
+NUM_EXP = 5
+GRID_DIM = 5
+T_MAX = 2
+
+# Keeps track of the accumulated regret across experiments.
+data = list([] for _ in range(NUM_EXP))
+
+overall_visitation_counts = {"state": [], "option": []}
+accumulated_regrets = []
+
+for exp in trange(NUM_EXP):
+    env = GridWorldOptions(GRID_DIM, r_max=1, teleport_on_reaching_goal=True, m=T_MAX)
+    evi = EVI()
+
+
+    pi = [0] * env.n_states
+    state = env.state
+    previous_experience = dc(env.N)
+
+    true_reward = env.compute_true_reward()
+
+    tqdm.write("Computing optimal policy...", end="")
+    optimal_policy, asymptotic_average_reward = env.solve(true_reward)
+    tqdm.write(f"Done! {asymptotic_average_reward = :.5f}")
+    plot_policy(optimal_policy, env, f"Optimal policy in {GRID_DIM}x{GRID_DIM} grid with target {env.target}", show=False, save=True)
+
+    accumulated_reward = 0
+    accumulated_holding_time = 0
+    accumulated_regret = []
+
+    for t in trange(MAX_ITERS):
+        valid_options = env.get_options(state)
+        option = pi[state]
+
+        if option not in valid_options:
+            option = np.random.choice(valid_options)
+
+        option = int(option)
+        opt = env.options[option]
+
+        prev_state = dc(env.state)
+        state, reward, holding_time = env.act(option)
+
+        overall_visitation_counts["state"].append(prev_state)
+        overall_visitation_counts["option"].append(opt.name)
+
+        accumulated_reward += reward
+        accumulated_holding_time += holding_time
+
+        accumulated_regret.append(accumulated_holding_time * asymptotic_average_reward - accumulated_reward)
+
+        data[exp].append(accumulated_reward)
+
+        if env.has_experience_doubled(previous_experience) or t == MAX_ITERS - 1:
+            # It doesn't matter which option's method is called as the counts are used from the SemiMDP.
+            _, r_ub = env.options[0].estimate_reward_bound(MDP=env)
+
+            p_hat = env.estimate_transition_probability()
+            p_lower, p_upper = env.estimate_transition_bound()
+
+            pi = evi.computepolicy(env, r_ub, p_lower, p_hat, p_upper, t+1)
+            previous_experience = dc(env.N)
+
+    accumulated_regrets.append(accumulated_regret)
+    plot_policy(pi, env, f"Learned policy in {GRID_DIM}x{GRID_DIM} grid with target {env.target}", show=False, save=True)
+
+
+plot_accumulated_regret(accumulated_regrets, f"Accumulated regret in {GRID_DIM}x{GRID_DIM} grid ({NUM_EXP} experiments)", show=True, save=True)
+plot_accumulated_reward(data, f"Accumulated reward in {GRID_DIM}x{GRID_DIM} grid ({NUM_EXP} experiments)", save=True)
+plot_option_visitation_counts(overall_visitation_counts, f"Visitation counts (teleport) in {GRID_DIM}x{GRID_DIM} grid ({NUM_EXP} experiments)", GRID_DIM * GRID_DIM, save=True)
+\end{minted}
+
+Post completion of the simulations, the plots for accumulated regret as well as accumulated reward are generated.
+The experimentation performed as well as the results obtained are described in the following chapter.

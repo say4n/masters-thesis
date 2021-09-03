@@ -7,7 +7,7 @@ Then, its extension to the options framework is described.
 
 The UCRL2 algorithm was introduced by Jaksch et. al. \cite{jaksch_near-optimal_2010}.
 It builds on the principle of optimism in the face of uncertainty; which chooses actions assuming that the environment is as nice as possible.
-This works because if the optimism is justified then the agent was acting optimally, and, if the optimism is not justified, then the agent gain a better understanding of the environment as it gains more experience.
+This works because if the optimism is justified then the agent was acting optimally, and, if the optimism is not justified, then the agent gains a better understanding of the environment as it gains more experience.
 
 From a set of MDPs $\mathcal{M}$ constructed from observed statistics of an environment through interaction, the algorithm chooses an MDP $M$ such that it maximizes the gain.
 It then computes a policy $\pi$ that is optimal to this optimistic MDP $M$.
@@ -18,7 +18,7 @@ UCRL2 computes estimates for the average reward and the transition probability f
 Throughout the episode, actions are chosen by the policy computed using EVI on the optimistic MDP.
 An episode terminates whenever an action is chosen as many times as it was previously chosen in a state $s$, in other words, when the experience of the agent has doubled.
 These visitation counts are recorded locally by $v_k(s, a)$ for each pair of state and action in the $k$-th episode.
-At the end of each episode, the global visitation counts $N_k(s,a)$ are updated with the values stores in $v_k(s, a)$ for each pair of state and action.
+At the end of each episode, the global visitation counts $N_k(s,a)$ are updated with the values stored in $v_k(s, a)$ for each pair of state and action.
 
 Formally, the set of MDPs $\mathcal{M}$ is defined as
 $$\mathcal{M} = \{ M(\mathcal{S}, \mathcal{A}, \hat{R}, \hat{p}) : \hat{p}(\cdot \mid s, a) \in c(s, a), \hat{\mu}(s, a) \in c^\prime(s, a)\}$$
@@ -131,14 +131,14 @@ The pseudo-code for the extended value iteration procedure is described in algor
 \section{Extending to MDP with Options}
 
 Fruit et. al. \cite{fruit_exploration--exploitation_2017, fruit_regret_2017} combine the SMDP view on options along with the intrinsic MDP structure underlying their execution to achieve temporal abstraction without relying on typically unknown parameters such as the transition probabilities and rewards involved.
-Each option is mapped to its associated irreducible Markov chain and optimistic policies are computed using only the stationary distribution of these irreducible Markov chains and the state transition dynamics induced by the SMDP. 
+Each option is mapped to its associated irreducible Markov chain and optimistic policies are computed using only the stationary distribution of these irreducible Markov chains and the state-transition dynamics induced by the SMDP. 
 This approach works without explicit estimates of cumulative rewards, holding times (section \ref{sec:holding_time}) and their confidence intervals.
 
 \begin{assumption}
 \label{asm:option}
 All options in the SMDP terminate in finite time, in all terminal states of the option, there is at least one option that can initiate and the resulting SMDP is communicating.
 \end{assumption}
-Lemma 3 of \cite{fruit_exploration--exploitation_2017} shows that under these assumptions, the family of SMDPs induced by extending MDPs with options is such that for each of the options, the the distributions of the cumulative reward and the duration of options are sub-exponential.
+Lemma 3 of \cite{fruit_exploration--exploitation_2017} shows that under these assumptions, the family of SMDPs induced by extending MDPs with options is such that for each of the options, the distributions of the cumulative reward and the duration of options are sub-exponential.
 
 For a SMDP $\langle \mathcal{S}, \mathcal{O}, \mathcal{P}, \mathcal{R} \rangle$, the optimal gain is formally defined as 
 
