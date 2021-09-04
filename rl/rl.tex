@@ -66,20 +66,12 @@ A policy is \textbf{stationary} if it does not change over time.
 
 The objective in the RL problem is to maximize a intrinsic reward metric subject to the dynamics of the environment governed by its underlying MDP.
 
-Starting from state $s$ and following the policy $\pi$, formally the objective to maximize can be defined as
-$$\mathbb{E}\left[\sum_{t=0}^{T_{max}} \gamma^t R_t | S_0 = s\right]$$
-where, $\gamma$ is the discount rate, $R_t$ is the reward attained at time step $t$, $\pi$ is the action selection policy.
-
-$T_{max}$ can be finite, which lead to the finite horizon setting. 
-In the finite horizon setting, if the rewards are bounded at every time step, then the undiscounted sum of rewards may also be used as an objective.
-$T_{max}$ may also be infinite, leading to the infinite horizon setting.
-In the infinite-horizon setting, reward discounting is used to make sure that the expected sum of discounted reward is bounded.
-
-The objective may also be defined as an average reward.
+The objective for the average reward setting is formally defined as
 Starting from state $s$ following the policy $\pi$, formally the average reward objective to maximize is defined as
 $$\lim_{T \to \infty} \mathbb{E}\left[\frac{1}{T} \sum_{t=1}^{T} R_t \mid S_0 = s\right]$$
 where, $T$ is the time horizon.
-We will be focusing in the average reward setting henceforth.
+
+Other settings such as discounted reward, cumulative reward settings also exist in reinforcement learning but we will be focusing in the average reward setting in this work.
 
 \section{Gain}
 
