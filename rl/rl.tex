@@ -179,6 +179,48 @@ One such algorithm is the value iteration algorithm. The value iteration algorit
 
 Value iteration converges to an optimal policy in a finite number of iterations \cite{puterman_chapter_1990} if there exists a state $s$ that is reachable from all other states under all stationary policies.
 
+\section{Reinforcement Learning in MDPs}
+
+An agent interacts with an environment characterised by the MDP $M$ where $M = \langle \mathcal{S}, \mathcal{A}, \mathcal{R}, \mathcal{P} \rangle$.
+The agent has knowledge of set of states $\mathcal{S}$ and the set of actions $\mathcal{A}$ but is unaware of the state transition probabilities and the associated rewards.
+The agent gains experience about the environment by interaction in a single trajectory of actions.
+The objective of the agent is to maximize the accumulated rewards by exploiting information gathered through the course of its interaction with the environment.
+
+\section{Regret}
+
+The learning performance of an agent is quantified with the measure of its regret.
+Regret of an algorithm $\mathbb{A}$ is defined as the difference in the cumulative reward by the optimal policy with that of the algorithm $\mathbb{A}$.
+Formally, it is defined as
+
+\begin{equation}
+    \label{eqn:regret}
+    \text{Regret}(\mathbb{A}, T) = \sum_{t = 0}^T r^*_t - \sum_{t = 0}^T r_t 
+\end{equation}
+
+where, $r^*_t = R(S_t, \pi^*(S_t))$ is the reward obtained at state $S_t$ by executing an action according to the optimal policy $\pi^*$ and $r_t$ is the reward obtained at state $S_t$ by executing an action chosen by the algorithm $\mathbb{A}$.
+The objective of the agent can be alternatively defined as minimization of the accumulated regret.
+
+By the Azuma-Hoeffding's inequality, the accumulated regret by following the optimal policy can be upper bounded with probability $1 - \delta$ as
+
+\begin{equation*}
+    \sum_{t = 0}^T r^*_t \le T g^* + \mathcal{O}(\sqrt{\log(2/\delta)}) 
+\end{equation*}
+
+where, $g^*$ is the optimal gain. Thus, Equation \ref{eqn:regret} can be rewritten as
+
+\begin{equation*}
+    \text{Regret}(\mathbb{A}, T) \le T g^* - \sum_{t = 0}^T r_t + \mathcal{O}(\sqrt{\log(2/\delta)})
+\end{equation*}
+
+or, alternately, regret can be defined as
+
+\begin{equation}
+    \label{eqn:theogregret}
+    \Delta(\mathbb{A}, T) =  T g^* - \sum_{t = 0}^T r_t
+\end{equation}
+
+minimizing which is asymptotically equivalent to finding a gain-optimal policy.
+
 % Links - 
 % https://ieor8100.github.io/rl/docs/Lecture%201%20-MDP.pdf
 % http://proceedings.mlr.press/v119/bourel20a/bourel20a.pdf

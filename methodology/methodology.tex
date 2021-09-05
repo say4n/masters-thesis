@@ -12,15 +12,7 @@ The smooth probability estimate is defined as
     P_o(s, s^\prime) = \frac{P_o(s, s^\prime) + \alpha}{\sum_{x \in \mathcal{S}} \left(P_o(s, x) + \alpha \right)}
 \end{equation}
 
-where, $\alpha$ is the smoothing factor. This is implemented as
-
-\begin{minted}[fontsize=\footnotesize, breaklines]{python3}
-for s in range(self.n_states):
-    # Smooth estimate.
-    p_hat[s] = (p_hat[s] + alpha)/(np.sum(p_hat[s]) + alpha * self.n_states)
-\end{minted}
-
-
+where, $\alpha$ is the smoothing factor.
 
 \section{Stationary Distribution of Markov Chain}
 
@@ -38,111 +30,8 @@ In other words, $\mu$ is the fixed point of the above equation.
 Transition probabilities defining ergodic Markov chains are guaranteed to have a stationary distribution of states.
 
 From equation \ref{eqn:mu_estimate}, it can be seen that $\mu$ is the left eigenvector of $P$ with eigenvalue 1.
-Hence, $\mu$ can be computed by eigendecomposition of the transition probability matrix $P$, then the eigenvector whose eigenvalue is 1 can be suitably normalized to obtain the stationary distribution.
-
-It is implemented as follows
-
-\begin{minted}[fontsize=\footnotesize, breaklines]{python3}
-def estimate_stationary_distribution(self, transition_probability):
-    eiv, r_evec = np.linalg.eig(transition_probability)
-    l_evec = np.linalg.pinv(r_evec)
-
-    # Find index of eigenvector with eigenvalue of unity.
-    pick_index = np.where(np.abs(eiv - 1) <= self.eps)
-    pick_index = pick_index[0]
-
-    t_estimate = np.zeros(transition_probability.shape[0])
-
-    for idx in pick_index:
-        t_estimate += np.abs(l_evec[idx])
-
-    # Normalize probabilities.
-    estimate = t_estimate / np.sum(t_estimate)
-
-    return estimate
-\end{minted}
-
-
-\section{Transition Probability}
-
-The true transition probability induced by an option $o$, $P_o$ as described in Section \ref{sec:trueP0} is computed as follows
-
-\begin{minted}[fontsize=\footnotesize, breaklines]{python3}
-def trueP0(self, mdp):
-    # terminal states
-    absorbing = [(s, p) for (s, p) in self.termination_condition if p > 0.0]
-    # inner: all states that are not terminal
-    inner = [(s, p) for (s, p) in self.termination_condition if p < 1.0]
-    # internal: internal states with initial state removed
-    internal = [(s, p) for (s, p) in inner if s not in self.initiation_states]
-
-    # compute true matrix P0
-    p0 = np.zeros((len(inner) + len(absorbing), len(inner) + len(absorbing)))
-    q0 = np.zeros((len(inner), len(inner)))
-    v0 = np.zeros((len(inner), len(absorbing)))
-
-    for i, (s, _) in enumerate(inner):
-        for j, (s_prime, p_s_prime) in enumerate(inner):
-            q0[i][j] = (1 - p_s_prime) * mdp.transition_probabilities[self.o_index][s][s_prime]
-
-    for i, (s, _) in enumerate(inner):
-        for k, (s_prime, p_s_prime) in enumerate(absorbing):
-            v0[i][j] = p_s_prime * mdp.transition_probabilities[self.o_index][s][s_prime]
-
-    p0[:len(inner), :len(inner)] = q0
-    p0[:len(inner), len(inner):] = v0
-    p0[len(inner):, len(inner):] = np.eye(len(absorbing), len(absorbing))
-
-    states = []
-    states.extend(map(lambda el: int(el[0]), inner))
-    states.extend(map(lambda el: int(el[0]), absorbing))
-
-    return p0, states
-\end{minted}
-
-\section{Computing Optimal Policy}
-
-The UCRL algorithm along with extended value iteration followed by computing the optimal policy is implemented as follows
-
-\begin{minted}[fontsize=\footnotesize, breaklines]{python3}
-def computepolicy(self, MDP: SemiMDP, r_upper, p_lower, p_hat, p_upper, t):
-    v_old = np.zeros(MDP.n_states)
-    v_diff = np.arange(MDP.n_states)
-    pi = np.zeros(MDP.n_states)
-    iter = 0
-
-    while iter < 1000 and max(v_diff) - min(v_diff) > 1/np.sqrt(t):
-        iter += 1
-
-        q = self.normalizeprobs(p_lower, p_hat, p_upper, v_old)
-        v = np.zeros(MDP.n_states)
-
-        for s in range(MDP.n_states):
-            v_max_over_options = 0
-            maximizing_option = None
-
-            # Max over options.
-            for o in MDP.get_options(s):
-                v_tmp = 0
-                mu_hat = MDP.options[o].estimate_stationary_distribution(q[o])
-
-                for s_prime in range(MDP.n_states):
-                    v_tmp += r_upper[s_prime] * mu_hat[s_prime]
-
-                v_tmp += mu_hat[s] * (np.dot(q[o][s].T, v_old) - v_old[s]) + v_old[s]
-
-                if v_tmp >= v_max_over_options:
-                    v_max_over_options = v_tmp
-                    maximizing_option = o
-
-            v[s] = v_max_over_options
-            pi[s] = maximizing_option
-
-        v_diff = v - v_old
-        v_old = v
-
-    return pi
-\end{minted}
+Thus, $\mu$ can be computed by eigendecomposition of the transition probability matrix $P$. 
+The eigenvector whose eigenvalue is 1 can be suitably normalized to obtain the stationary distribution of the Markov chain.
 
 \section{Confidence Bounds}
 
@@ -153,91 +42,7 @@ In this work, we have used empirical Bernstein type confidence intervals to obta
 
 \section{Putting it all together}
 
-Experimentation is carried out with the following driver script. 
 At the start of each experiment, a new environment is instantiated and the various statistics are reset.
 A new policy is evaluated only once experience has doubled for at least one of the state-option pairs.
-
-\begin{minted}[fontsize=\footnotesize, breaklines]{python3}
-import numpy as np
-from copy import deepcopy as dc
-from tqdm.auto import trange, tqdm
-
-from GridWorldOptions import GridWorldOptions
-from ExtendedValueIteration import EVI
-from util import plot_option_visitation_counts, plot_policy, plot_accumulated_reward, plot_accumulated_regret
-
-MAX_ITERS = 200_000
-NUM_EXP = 5
-GRID_DIM = 5
-T_MAX = 2
-
-# Keeps track of the accumulated regret across experiments.
-data = list([] for _ in range(NUM_EXP))
-
-overall_visitation_counts = {"state": [], "option": []}
-accumulated_regrets = []
-
-for exp in trange(NUM_EXP):
-    env = GridWorldOptions(GRID_DIM, r_max=1, teleport_on_reaching_goal=True, m=T_MAX)
-    evi = EVI()
-
-
-    pi = [0] * env.n_states
-    state = env.state
-    previous_experience = dc(env.N)
-
-    true_reward = env.compute_true_reward()
-
-    tqdm.write("Computing optimal policy...", end="")
-    optimal_policy, asymptotic_average_reward = env.solve(true_reward)
-    tqdm.write(f"Done! {asymptotic_average_reward = :.5f}")
-    plot_policy(optimal_policy, env, f"Optimal policy in {GRID_DIM}x{GRID_DIM} grid with target {env.target}", show=False, save=True)
-
-    accumulated_reward = 0
-    accumulated_holding_time = 0
-    accumulated_regret = []
-
-    for t in trange(MAX_ITERS):
-        valid_options = env.get_options(state)
-        option = pi[state]
-
-        if option not in valid_options:
-            option = np.random.choice(valid_options)
-
-        option = int(option)
-        opt = env.options[option]
-
-        prev_state = dc(env.state)
-        state, reward, holding_time = env.act(option)
-
-        overall_visitation_counts["state"].append(prev_state)
-        overall_visitation_counts["option"].append(opt.name)
-
-        accumulated_reward += reward
-        accumulated_holding_time += holding_time
-
-        accumulated_regret.append(accumulated_holding_time * asymptotic_average_reward - accumulated_reward)
-
-        data[exp].append(accumulated_reward)
-
-        if env.has_experience_doubled(previous_experience) or t == MAX_ITERS - 1:
-            # It doesn't matter which option's method is called as the counts are used from the SemiMDP.
-            _, r_ub = env.options[0].estimate_reward_bound(MDP=env)
-
-            p_hat = env.estimate_transition_probability()
-            p_lower, p_upper = env.estimate_transition_bound()
-
-            pi = evi.computepolicy(env, r_ub, p_lower, p_hat, p_upper, t+1)
-            previous_experience = dc(env.N)
-
-    accumulated_regrets.append(accumulated_regret)
-    plot_policy(pi, env, f"Learned policy in {GRID_DIM}x{GRID_DIM} grid with target {env.target}", show=False, save=True)
-
-
-plot_accumulated_regret(accumulated_regrets, f"Accumulated regret in {GRID_DIM}x{GRID_DIM} grid ({NUM_EXP} experiments)", show=True, save=True)
-plot_accumulated_reward(data, f"Accumulated reward in {GRID_DIM}x{GRID_DIM} grid ({NUM_EXP} experiments)", save=True)
-plot_option_visitation_counts(overall_visitation_counts, f"Visitation counts (teleport) in {GRID_DIM}x{GRID_DIM} grid ({NUM_EXP} experiments)", GRID_DIM * GRID_DIM, save=True)
-\end{minted}
-
 Post completion of the simulations, the plots for accumulated regret as well as accumulated reward are generated.
 The experimentation performed as well as the results obtained are described in the following chapter.

@@ -89,6 +89,14 @@ The pseudo-code for the UCRL2 procedure is described in Algorithm \ref{alg:ucrl2
 }
 \end{algorithm}
 
+For a confidence parameter $\delta \in (0, 1)$, the regret under UCRL2 in any communicating MDP with $S$ states, $A$ actions and diameter $D$ is
+
+\begin{equation*}
+    \Delta(T) = 34DS\sqrt{AT\log{T/\delta}}
+\end{equation*}
+
+with probability at least $1 - \delta$ and uniformly for all $T \ge 2$. The \textbf{diameter} $D$ is defined as $D \doteq \max_{s \ne s^\prime} \min_\pi \mathbb{E} \left[ T^\pi(s, s^\prime) \right]$ where $T^\pi(s, s^\prime)$ is the the time to reach state $s^prime$ starting from the initial state $s$ following the stationary policy $\pi$.
+
 \section{Extended Value Iteration}
 
 UCRL2 necessitates the computation of a near-optimal policy for an optimistic MDP $M_k$ during the $k$-th episode.
@@ -234,4 +242,3 @@ To obtain an approximation of equation \ref{eqn:fruit5}, starting from an estima
     u_{j+1}(s) = \max_{o \in \mathcal{S}} \left\{ \max_{\tilde{\mu}_o, \tilde{r}_o} \left\{ \sum_{s^\prime \in \mathcal{S}_o} \tilde{r}_o(s^\prime) \tilde{\mu}_o(s^\prime) + \tilde{\mu}_o(s) \left( \max_{\tilde{b}_o}\left\{ \tilde{b}_o^\top \tilde{u}_j(s) \right\} - \tilde{u}^*(s) \right) \right\} \right\} + \tilde{u}_j(s)
 \end{equation}
 
-The implementation of this update rule is further described in the following chapter.

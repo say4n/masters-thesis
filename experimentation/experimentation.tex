@@ -39,7 +39,7 @@ If the agent hits the walls in the boundary of the grid world while executing an
     \label{fig:grid_domain}
 \end{figure}
 
-When the goal state is reached, the agent is teleported to any of the $d^2$ states with uniform probability.
+When the goal state is reached and the agent interacts with the environment, it is teleported to any of the $d^2$ states with uniform probability.
 The agent receives a reward of $r_{max}$ when it transitions from the goal state to any other state; for all other state transitions, it receives 0 reward.
 
 At each state except the goal state 4 options are available, they are \texttt{UP}, \texttt{DOWN}, \texttt{LEFT} and \texttt{RIGHT}.
