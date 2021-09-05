@@ -13,19 +13,29 @@ From a set of MDPs $\mathcal{M}$ constructed from observed statistics of an envi
 It then computes a policy $\pi$ that is optimal to this optimistic MDP $M$.
 
 The UCRL2 algorithm is episodic in nature, the optimal policy is computed at the beginning of each episode through Extended Value Iteration (EVI).
+The episodes in the UCRL2 algorithm do not correspond to the episodes in the environment, instead they are characterised by the execution of the same policy during the episode.
 The length of the episodes are not fixed and depend on the observations collected from the environment.
 UCRL2 computes estimates for the average reward and the transition probability from the observations made before the $k$-th episode.
-Throughout the episode, actions are chosen by the policy computed using EVI on the optimistic MDP.
+Throughout the episode, actions are chosen by the policy computed using EVI on the optimistic MDP from a set of MDPs.
 An episode terminates whenever an action is chosen as many times as it was previously chosen in a state $s$, in other words, when the experience of the agent has doubled.
 These visitation counts are recorded locally by $v_k(s, a)$ for each pair of state and action in the $k$-th episode.
-At the end of each episode, the global visitation counts $N_k(s,a)$ are updated with the values stored in $v_k(s, a)$ for each pair of state and action.
+At the end of each episode $k$, the global visitation counts $N_k(s,a)$ are updated with the values stored in $v_k(s, a)$ for each pair of state and action.
 
-Formally, the set of MDPs $\mathcal{M}$ is defined as
+Let the empirical estimate for the rewards at end of episode $k$ be defined as  
+$$\hat{\mu}_k(s, a) = \frac{\sum_{t=1}^k R(S_t, A_t) \mathbbm{1}_{S_t = s, A_t = a}}{\max\left\{ 1, N_k(s,a) \right\}}$$
+where, $R(S_t, A_t)$ is the reward realized in state $S_t$ by taking action $A_t$.
+
+Let the empirical estimate for the state transition probabilities at end of episode $k$ be defined as  
+$$\hat{p}_k(s^\prime \mid s, a) = \frac{N_k(s, a, s^\prime)}{\max\left\{ 1, N_k(s,a) \right\}}$$
+where, $N_k(s, a, s^\prime)$ is the number of visits to state $s$, taking action $a$ followed by a visit to state $s^\prime$ till the $k$-th episode.
+
+Formally, the set of MDPs $\mathcal{M}$ maintained by UCRL2 is defined as
 $$\mathcal{M} = \{ M(\mathcal{S}, \mathcal{A}, \hat{R}, \hat{p}) : \hat{p}(\cdot \mid s, a) \in c(s, a), \hat{\mu}(s, a) \in c^\prime(s, a)\}$$
-where, $c$ and $c^\prime$ are high probability confidence sets for the average reward $\mu$ and the transition probability ($p$) respectively.
-For a confidence level $\delta \in (0,1)$, the confidence sets $c$ and $c^\prime$ at time step $t$ are defined as follows
+where, $c$ and $c^\prime$ are high probability confidence sets for the average reward $\hat{\mu}$ (mean of $\hat{R}$) and the transition probability $\hat{p}$ respectively.
+
+For a specific value of the confidence parameter $\delta \in (0,1)$, the confidence sets $c$ and $c^\prime$ at time step $t$ are defined as follows
 \begin{equation}
-c_{\delta, t} (s,a) = \left\{ q \in \Delta(\mathcal{S}): \| \hat{p}_t (\cdot \mid s, a) - q \| \le \sqrt{ \frac{14S}{N_t(s,a)}\log\left( \frac{2At}{\delta} \right)}\right\}
+c_{\delta, t} (s,a) = \left\{ q \in \Delta(\mathcal{S}): \| \hat{p}_t (\cdot \mid s, a) - q \|_1 \le \sqrt{ \frac{14S}{N_t(s,a)}\log\left( \frac{2At}{\delta} \right)}\right\}
 \label{eq:ci_p}
 \end{equation}
 and,
@@ -67,7 +77,7 @@ The pseudo-code for the UCRL2 procedure is described in algorithm \ref{alg:ucrl2
         
         Execute action $a_t \sim \pi_k(\cdot \mid s_t)$
         
-        Receive reward $r_t(s_t, a_t)$
+        Receive reward $R(s_t, a_t)$
         
         \BlankLine
         \tcp{Update local visitation count for the current episode and increment the time step.}
@@ -82,7 +92,7 @@ The pseudo-code for the UCRL2 procedure is described in algorithm \ref{alg:ucrl2
 \section{Extended Value Iteration}
 
 UCRL2 necessitates the computation of a near-optimal policy for an optimistic MDP $M_k$ during the $k$-th episode.
-While value iteration is able to compute an optimal policy for a single MDP, the UCRL2 setting requires computing a near-optimal policy in addition to selecting an optimistic MDP $M_k$ that maximizes the average reward.
+While value iteration is able to compute an optimal policy for a single MDP, the UCRL2 algorithm requires computing a near-optimal policy in addition to selecting an optimistic MDP $M_k$ that maximizes the average reward.
 Extended Value Iteration (EVI) is used to that end.
 
 Let the state value of state $s$ at $k$-th iteration be denoted by $u_k(s)$ and let $u_0(s) = 0$ for all states, then,
@@ -138,7 +148,7 @@ This approach works without explicit estimates of cumulative rewards, holding ti
 \label{asm:option}
 All options in the SMDP terminate in finite time, in all terminal states of the option, there is at least one option that can initiate and the resulting SMDP is communicating.
 \end{assumption}
-Lemma 3 of \cite{fruit_exploration--exploitation_2017} shows that under these assumptions, the family of SMDPs induced by extending MDPs with options is such that for each of the options, the distributions of the cumulative reward and the duration of options are sub-exponential.
+Lemma 3 of \cite{fruit_exploration--exploitation_2017} shows that under these assumptions, the family of SMDPs induced by extending MDPs with options is such that for each of the options, the distributions of the cumulative reward and the duration of options are sub-exponential\footnote{A mean-zero random variable $X$ is ($\tau^2, b$) sub-exponential iff $\mathbb{E}[\exp(\lambda X)] \le \exp\left( \frac{\lambda^2 \tau^2}{2} \right)$ for $|\lambda| \le \frac{1}{b}$}.
 
 For a SMDP $\langle \mathcal{S}, \mathcal{O}, \mathcal{P}, \mathcal{R} \rangle$, the optimal gain is formally defined as 
 
@@ -153,7 +163,7 @@ where $R_i$ is the reward accumulated by an option executed at time step $i$. Al
     \rho^* = \max_{o \in \mathcal{O}_s} \left\{ \frac{\bar{R}(s, o)}{\bar{\tau}(s, o)} + \frac{1}{\bar{\tau}(s, o)} \sum_{s^\prime \in \mathcal{S}} p_o(s^\prime \mid s, o) u^*(s^\prime) - u^*(s) \right\}
 \end{equation}
 
-by performing a data transformation as defined in lemma 2 of \cite{federgruen_denumerable_1983}. $u^*$ is the optimal bias and $\mathcal{O}_s$ is the set of options that can be initiated from state $s$ in the above equation.
+by performing a data transformation as defined in Lemma 2 of \cite{federgruen_denumerable_1983}. $u^*$ is the optimal bias and $\mathcal{O}_s$ is the set of options that can be initiated from state $s$ in the above equation.
 
 The performance of a learning algorithm is evaluated through a measure of regret as described in definition \ref{def:regret}.
 
