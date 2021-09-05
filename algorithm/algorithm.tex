@@ -5,7 +5,7 @@ Then, its extension to the options framework is described.
 
 \section{UCRL2}
 
-The UCRL2 algorithm was introduced by Jaksch et. al. \cite{jaksch_near-optimal_2010}.
+The UCRL2 algorithm was introduced by Jaksch et al. \cite{jaksch_near-optimal_2010}.
 It builds on the principle of optimism in the face of uncertainty; which chooses actions assuming that the environment is as nice as possible.
 This works because if the optimism is justified then the agent was acting optimally, and, if the optimism is not justified, then the agent gains a better understanding of the environment as it gains more experience.
 
@@ -140,7 +140,7 @@ The pseudo-code for the extended value iteration procedure is described in algor
 
 \section{Extending to MDP with Options}
 
-Fruit et. al. \cite{fruit_exploration--exploitation_2017, fruit_regret_2017} combine the SMDP view on options along with the intrinsic MDP structure underlying their execution to achieve temporal abstraction without relying on typically unknown parameters such as the transition probabilities and rewards involved.
+Fruit et al. \cite{fruit_exploration--exploitation_2017, fruit_regret_2017} combine the SMDP view on options along with the intrinsic MDP structure underlying their execution to achieve temporal abstraction without relying on typically unknown parameters such as the transition probabilities and rewards involved.
 Each option is mapped to its associated irreducible Markov chain and optimistic policies are computed using only the stationary distribution of these irreducible Markov chains and the state-transition dynamics induced by the SMDP. 
 This approach works without explicit estimates of cumulative rewards, holding times (section \ref{sec:holding_time}) and their confidence intervals.
 
@@ -218,7 +218,7 @@ However, this does not work very well as if the the value 0 belongs to the confi
 Starting from $P_o$, an irreducible Markov chain can be constructed whose stationary distribution relates to the ratio of the cumulative reward and the holding times as well as the inverse of the holding times.
 All the terminal states are merged together and are redirected to the initiation state of the option.
 
-The optimistic optimality equation is defined by Fruit et. al. \cite{fruit_regret_2017} in equation 5 as
+The optimistic optimality equation is defined by Fruit et al. \cite{fruit_regret_2017} in equation 5 as
 
 \begin{equation}
     \label{eqn:fruit5}
@@ -227,7 +227,7 @@ The optimistic optimality equation is defined by Fruit et. al. \cite{fruit_regre
 
 where, $ \tilde{r}_o(s^\prime) =  \tilde{r}(s^\prime, \pi_o(s^\prime))$ is the optimistic reward, $\tilde{b}_o = (\tilde{p}(s^\prime \mid s, o))_{s^\prime \in \mathcal{S}_o}$ is the optimistic transition probability vector and $\mu_o$ is the unique stationary distribution of the irreducible Markov chain.
 
-To obtain an approximation of equation \ref{eqn:fruit5}, starting from an estimate $u_0(s) = 0$ Fruit et. al. define an iterative update rule described as follows
+To obtain an approximation of equation \ref{eqn:fruit5}, starting from an estimate $u_0(s) = 0$ Fruit et al. define an iterative update rule described as follows
 
 \begin{equation}
     \label{eqn:fruit7}
