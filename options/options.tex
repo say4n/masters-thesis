@@ -9,7 +9,8 @@ An option consists of three components:
     \item an initiation set $\mathcal{I}_o \subset \mathcal{S}$ and,
     \item a termination condition $\beta_o : \mathcal{S} \mapsto [0, 1]$
 \end{inparaenum}.
-In this chapter, the options framework is introduced followed my semi-Markov options and policies. Finally, semi-Markov Decision Processes are introduced which incorporates semi-Markov options and policies into MDPs.
+In this chapter, the options framework is introduced followed by semi-Markov options and policies. 
+Finally, semi-Markov Decision Processes are introduced which incorporate semi-Markov options and policies into MDPs.
 
 \section{Options}
 
@@ -23,7 +24,7 @@ This continues till the option terminates, post that another option is executed 
 The initiation condition along with the termination condition restricts the range of applicability of an option.
 This yields an expressive setting wherein abstract tasks maybe modeled based on the current state of as system to satisfy an objective.
 
-For example, in a robot locomotion problem, a robot may only plug itself to a wall adapter when in it is in physical proximity to its docking station.
+For example, in a robot locomotion problem, a robot may only plug itself to a wall adapter when it is in physical proximity to its docking station.
 Another example would be that a robot arm can only release an object if it has already grabbed it.
 
 \subsection{Holding Time}\label{sec:holding_time}
@@ -56,21 +57,21 @@ The option is then executed and actions are taken following the options policy $
 At this point, an option is again chosen to be executed following the option policy.
 
 Although semi-Markov policies may appear similar to non-stationary policies as they are dependant on the history, they are more specialized than non-stationary policies.
-Non, stationary policies depend on the entire history whereas semi-Markov policies are dependent on the history only up to a certain number of time steps in the past.
+Non-stationary policies depend on the entire history whereas semi-Markov policies are dependent on the history only up to a certain number of time steps in the past.
 
 
 \section{Semi-Markov Decision Processes}
 
 
-Semi-Markov Decision Processes (SMDPs) build up on top of MDPs with semi-Markov options and policies
+Semi-Markov Decision Processes (SMDPs) build up on top of MDPs with semi-Markov options and policies.
 SMDPs are special kinds of MDPs that are suitable for modeling continuous-time discrete event system.
 
-The key constituents of a SMDP are
+The key constituents of an SMDP are
 \begin{inparaenum}[(a)]
     \item a set of states
     \item a set of options
     \item a transition probability kernel condition on the options
-    \item a well-defined set of rewards for ever state-option pair.
+    \item a well-defined set of rewards for every state-option pair.
 \end{inparaenum}
 
 Formally, a SMDP is defined as the tuple $\langle \mathcal{S}, \mathcal{O}, \mathcal{P}, \mathcal{R} \rangle$ wherein $\mathcal{S}$ is the set of states, $\mathcal{O} \doteq \bigcup_{s \in \mathcal{S}} \mathcal{O}_s$ is the set of available options at each state, $\mathcal{P}$ is the transition probability kernel that is dependant on the option being executed and $\mathcal{R}$ is the reward kernel.
