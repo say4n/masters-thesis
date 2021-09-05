@@ -103,7 +103,7 @@ where, $R_t$ is the reward is the reward realized in state $S_t$ when $a_t$ is e
 
 \subsection*{Bias Optimality}
 
-A policy $\pi^*$ is bias-optimal if the policy $\pi^*$ gain-optimal and also maximizes the bias values such that $h^\pi^*(s) > h^\pi(s)$ for all states $s \in \mathcal{S}$ and policies $\pi$.
+A policy $\pi^*$ is bias-optimal if the policy $\pi^*$ gain-optimal and also maximizes the bias values such that $h^{\pi^*(s)} > h^\pi(s)$ for all states $s \in \mathcal{S}$ and policies $\pi$.
 
 \section{Value Function}
 
@@ -154,7 +154,7 @@ where, $R(s,a) = \mathbb{E}_{s^\prime \sim \mathcal{P}(\cdot \mid s, a)}\left[ R
 
 From the recursive definition of the Bellman optimality equation, an iterative algorithm can be formulated. 
 This is motivated by the fact that using dynamic programming approaches is infeasible for computationally large state, action spaces and large or infinite time horizons.
-One such algorithm is the value iteration algorithm. The value iteration algorithm for the average reward scenario as proposed by Hordijk and Tijms \cite{hordijk_modified_1975} is described in algorithm \ref{alg:vi}.
+One such algorithm is the value iteration algorithm. The value iteration algorithm for the average reward scenario as proposed by Hordijk and Tijms \cite{hordijk_modified_1975} is described in Algorithm \ref{alg:vi}.
 
 \begin{algorithm}[!htbp]
     \SetKwInOut{KwInit}{Initialize}

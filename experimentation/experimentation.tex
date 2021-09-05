@@ -9,7 +9,7 @@ Experimentation was performed on a $d \times d$ grid world domain. The environme
 
 \subsection*{Grid World Domain}
 
-The grid world in figure \ref{fig:grid_domain} illustrates a navigation problem with $d^2$ states.
+The grid world in Figure \ref{fig:grid_domain} illustrates a navigation problem with $d^2$ states.
 At each of the states except the goal state in the grid world, 4 deterministic atomic actions are available, they are \texttt{UP}, \texttt{DOWN}, \texttt{LEFT} and \texttt{RIGHT}.
 If the agent hits the walls in the boundary of the grid world while executing an action, it stays in the current state with a probability of 1.
 
@@ -62,7 +62,7 @@ In our implementation, each of the states are numbered from 0 through $d^2 - 1$ 
 100 trials of learning in the grid world domain was executed for a time horizon of 200000 time steps.
 During each trial the environment was randomly re-initialized such that the collected statistics were reset and both the agent and the goal state were moved to different locations on the grid.
 
-The associated plots for accumulated regret and accumulated reward using empirical Bernstein type confidence intervals are shown in figures \ref{fig:regret} and  \ref{fig:reward}.
+The associated plots for accumulated regret and accumulated reward using empirical Bernstein type confidence intervals are shown in Figures \ref{fig:regret} and \ref{fig:reward}.
 The gray error bands on the plot correspond to the 95\% confidence interval for the respective quantities being measured.
 
 \begin{figure}[!htbp]
@@ -72,7 +72,7 @@ The gray error bands on the plot correspond to the 95\% confidence interval for 
     \label{fig:regret}
 \end{figure}
 
-It can be observed from figure \ref{fig:regret} that the accumulated regret follows a sub-linear trend.
+It can be observed from Figure \ref{fig:regret} that the accumulated regret follows a sub-linear trend.
 
 \begin{figure}[!htbp]
     \centering
@@ -81,9 +81,9 @@ It can be observed from figure \ref{fig:regret} that the accumulated regret foll
     \label{fig:reward}
 \end{figure}
 
-It can also be observed from figure \ref{fig:reward} that the accumulated reward follows a linear trend.
+It can also be observed from Figure \ref{fig:reward} that the accumulated reward follows a linear trend.
 
-The optimal policy as well as the learned policy are shown in figures \ref{fig:policy_1}, \ref{fig:policy_10}, \ref{fig:policy_12}, \ref{fig:policy_14} and \ref{fig:policy_20} for goal states 1, 10, 12, 14 and 20 in the grid world domain.
+The optimal policy as well as the learned policy are shown in Figures \ref{fig:policy_1}, \ref{fig:policy_10}, \ref{fig:policy_12}, \ref{fig:policy_14} and \ref{fig:policy_20} for goal states 1, 10, 12, 14 and 20 in the grid world domain.
 
 \begin{figure}[!htbp]
     \centering
