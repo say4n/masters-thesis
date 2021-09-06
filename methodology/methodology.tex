@@ -33,10 +33,66 @@ From equation \ref{eqn:mu_estimate}, it can be seen that $\mu$ is the left eigen
 Thus, $\mu$ can be computed by eigendecomposition of the transition probability matrix $P$. 
 The eigenvector whose eigenvalue is 1 can be suitably normalized to obtain the stationary distribution of the Markov chain.
 
+\section{Representing Options as absorbing Markov chains} \label{sec:trueP0}
+
+Since the options terminate in a finite time number of time steps (from assumption \ref{asm:option}), options can be equivalently represented as Markov reward processes whose state space is defined as the set of all states that a reachable from the option and whose terminal states are the absorbing states of the Markov chain.
+Formally, for an option $o$, the inner set of states $\mathcal{S}_o$ is defined as the set of states $s$ which are reachable from the initiation state $s_o$ by executing the option policy $\pi_o$ with $\beta(s) < 1$ along with the initiation state $s_o$, while the set of absorbing states is defined as $\mathcal{S}_o^{abs}\{s : \beta(s) > 0\}$.
+The absorbing Markov chain associated with an option $o$ is defined by a transition probability matrix $P_o$ of shape $(|\mathcal{S}_o| + |\mathcal{S}_o^{abs}|) \times (|\mathcal{S}_o| + |\mathcal{S}_o^{abs}|)$ described below
+
+\begin{equation}
+    P_o = \begin{bmatrix}
+       Q_o & V_o \\
+       0 & I
+    \end{bmatrix}
+\end{equation}
+
+where, $Q_o(s, s^\prime)$ is the transition matrix between inner states of dimension $|\mathcal{S}_o| \times |\mathcal{S}_o|$
+
+\begin{equation}
+    Q_o(s, s^\prime) = (1 - \beta_o(s^\prime)) p(s^\prime \mid s, \pi_o(s)) \forall s, s^\prime \in \mathcal{S}_o
+\end{equation}
+
+$V_o(s, s^\prime)$ is the transition matrix from inner states to absorbing states of dimension $|\mathcal{S}_o| \times |\mathcal{S}_o^{abs}|$
+
+\begin{equation}
+    V_o(s, s^\prime) = \beta_o(s^\prime) p(s^\prime \mid s, \pi_o(s)) \forall s \in \mathcal{S}_o, s^\prime \in \mathcal{S}_o^{abs}
+\end{equation}
+
+and $I$ is an identity matrix of dimension $|\mathcal{S}_o^{abs}| \times |\mathcal{S}_o^{abs}|$.
+The rest of the elements in the transition probability matrix are zeros.
+
+As the expected cumulative reward $\bar{R}(s, o)$ and the duration of options $\bar{\tau}(s, o)$ are directly related to $Q_o$ and $V_o$ of the associated transition probability matrix $P_o$ for an option, an estimate of this transition probability matrix can be exploited to derive corresponding estimates for the expected cumulative reward and the duration of options.
+Similarly confidence intervals on these could also be propagated from the confidence intervals of the corresponding values of the transition probability matrix.
+However, this does not work very well as if the the value 0 belongs to the confidence interval of $P_0$, then the optimistic estimates of the expected cumulative reward $\bar{R}(s, o)$ and the duration of options $\bar{\tau}(s, o)$ are not bounded and ill defined as $\bar{\tau}(s, o)$ appears in the denominator of equation \ref{eq:optimal_bias}.
+
+
+\section{Representing Options as irreducible Markov chains}
+
+Starting from $P_o$, an irreducible Markov chain can be constructed whose stationary distribution relates to the ratio of the cumulative reward and the holding times as well as the inverse of the holding times.
+All the terminal states are merged together and are redirected to the initiation state of the option.
+
+The optimistic optimality equation is defined by Fruit et al. \cite{fruit_regret_2017} in equation 5 as
+
+\begin{equation}
+    \label{eqn:fruit5}
+    \tilde{\rho}^* = \max_{o \in \mathcal{S}} \left\{ \max_{\tilde{\mu}_o, \tilde{r}_o} \left\{ \sum_{s^\prime \in \mathcal{S}_o} \tilde{r}_o(s^\prime) \tilde{\mu}_o(s^\prime) + \tilde{\mu}_o(s) \left( \max_{\tilde{b}_o}\left\{ \tilde{b}_o^\top \tilde{u}^* \right\} - \tilde{u}^*(s) \right)  \right\} \right\}
+\end{equation}
+
+where, $ \tilde{r}_o(s^\prime) =  \tilde{r}(s^\prime, \pi_o(s^\prime))$ is the optimistic reward, $\tilde{b}_o = (\tilde{p}(s^\prime \mid s, o))_{s^\prime \in \mathcal{S}_o}$ is the optimistic transition probability vector and $\tilde{\mu}_o$ is the stationary distribution of the estimated irreducible Markov chain.
+
+To obtain an approximation of equation \ref{eqn:fruit5}, starting from an estimate $u_0(s) = 0$ Fruit et al. define an iterative update rule described as follows
+
+\begin{equation}
+    \label{eqn:fruit7}
+    u_{j+1}(s) = \max_{o \in \mathcal{S}} \left\{ \max_{\tilde{\mu}_o} \left\{ \sum_{s^\prime \in \mathcal{S}_o} \tilde{r}_o(s^\prime) \tilde{\mu}_o(s^\prime) + \tilde{\mu}_o(s) \left( \max_{\tilde{b}_o}\left\{ \tilde{b}_o^\top u_j(s) \right\} - u_j(s) \right) \right\} \right\} + u_j(s)
+\end{equation}
+
+where, $u_j(s)$ is the value of state $s$ at the end of the $j$-th time-step.
+
+
 \section{Confidence Bounds}
 
-The confidence bounds for $\mu_o$ may be calculated either implicitly or explicitly.
-Fruit et al. \cite{fruit_regret_2017} use Hoeffding and empirical Bernstein type confidence intervals for the SMDP transition probabilities, the Markov chain associated with each option and the rewards.
+Fruit et al. \cite{fruit_regret_2017} use Hoeffding and empirical Bernstein type confidence intervals for the SMDP transition probabilities $\mathcal{P}$, the Markov chain associated with each option characterised by their transition probabilities $P_o$ and the rewards realized $r$.
 In this work, we have used empirical Bernstein type confidence intervals to obtain upper bounds on the estimates.
 
 
