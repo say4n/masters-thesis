@@ -99,7 +99,7 @@ It is formally defined as
     h^\pi(s) = \mathbb{E}^\pi\left[\lim_{T \to \infty} \sum_{t=0}^{T} (R_t - \rho^\pi(S_t)) \mid S_0 = s\right]
 \end{equation}
 
-where, $R_t$ is the reward is the reward realized in state $S_t$ when $a_t$ is executed where $a_t$ is chosen according to the action policy $\pi$.
+where, $R_t$ is the reward realized in state $S_t$ when $a_t$ is executed where $a_t$ is chosen according to the action policy $\pi$.
 
 \subsection*{Bias Optimality}
 
@@ -145,7 +145,7 @@ For a communicating MDP, let $h^*$ be the bias of the optimal policy $\pi^* = \a
 Then, the Bellman optimality equations state that the optimal gain $\rho^* = \rho$ is a feasible solution of the equations below 
 
 \begin{equation}
-    \rho^* + h^*(s) = \max_a \left( R(s, a) + \sum_{s^\prime} P(s^\prime \mid s, a) h^*(s) \right) \quad \forall s \in \mathcal{S}
+    \rho^* + h^*(s) = \max_a \left( R(s, a) + \sum_{s^\prime} \mathcal{P}(s^\prime \mid s, a) h^*(s) \right) \quad \forall s \in \mathcal{S}
 \end{equation}
 
 where, $R(s,a) = \mathbb{E}_{s^\prime \sim \mathcal{P}(\cdot \mid s, a)}\left[ R(s, a, s^\prime) \right]$ is the expected reward realized at state $s$ taking action $a$.
@@ -178,6 +178,15 @@ One such algorithm is the value iteration algorithm. The value iteration algorit
 \end{algorithm}
 
 Value iteration converges to an optimal policy in a finite number of iterations \cite{puterman_chapter_1990} if there exists a state $s$ that is reachable from all other states under all stationary policies.
+
+The policy computed after value iteration is greedy with respect to the computed values.
+Formally it can be written as
+
+\begin{equation}
+    \pi(s) \in \arg\max_{a \in \mathcal{A}} \left( R(s, a) + \sum_{s^\prime}{\mathcal{P}(s^\prime \mid s, a)} v(s) \right) \quad \forall s \in \mathcal{S}
+\end{equation}
+
+where, $v(s)$ is the value computed by value iteration.
 
 \section{Reinforcement Learning in MDPs}
 
