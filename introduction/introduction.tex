@@ -21,7 +21,7 @@ Temporal abstraction intuitively leads to faster learning as it helps learn prom
 It also decreases the computational overhead as the action space can be vastly reduced by introducing options thereby reducing the exploration necessary to evaluate the actions.
 However, introducing options may lead to gains in performance in limited contexts as shown by Jong et al. in \cite{jong_utility_2008}.
 This necessitated a formal analysis on the performance of options and when it aids reinforcement learning, which was undertaken by Fruit et al. in \cite{fruit_exploration--exploitation_2017}. 
-The precursor to this work was Brunskill and Li's \cite{brunskill_pac-inspired_2014} derivation of sample complexity bounds for R\textsc{max} like algorithms for SMDPs and Fruit and Lazaric's \cite{fruit_exploration--exploitation_2017} mapping of regret of the SMDP version of UCRL algorithm to the regret of learning in the original MDP with options.
+The precursor to this work was Brunskill and Li's \cite{brunskill_pac-inspired_2014} derivation of sample complexity bounds for R\textsc{max} like algorithms for SMDPs and Fruit and Lazaric's \cite{fruit_exploration--exploitation_2017} mapping of regret of the SMDP version of UCRL2 algorithm to the regret of learning in the original MDP with options.
 Fruit et al. \cite{fruit_exploration--exploitation_2017} derive upper bounds for regret in the SMDP setting.
 
 In this work, we implement the work by Fruit et al.\cite{fruit_exploration--exploitation_2017} and try various confidence bounds like the empirical Bernstein peeling confidence bound to gauge the accumulated regret.
